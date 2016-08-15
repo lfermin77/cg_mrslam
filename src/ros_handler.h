@@ -61,9 +61,11 @@ class RosHandler
   
   inline SE2 getGroundTruth(int robot){return _gtPoses[robot];}
   inline ros::Time getTimeLastPing(int robot){return _timeLastPing[robot];}
+  inline sensor_msgs::LaserScan  laser() {return _laserscan;}
 
   inline void setOdomTopic(std::string odomTopic) {_odomTopic = odomTopic;}
   inline void setScanTopic(std::string scanTopic) {_scanTopic = scanTopic;}
+  
 
   void init();
   void run();

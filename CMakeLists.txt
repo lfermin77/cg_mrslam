@@ -8,6 +8,12 @@ find_package(catkin REQUIRED COMPONENTS
    roscpp
    std_msgs
    message_generation
+   
+  rospy
+  tf
+  nav_msgs
+  cv_bridge
+  image_transport
 )
 
 ## System dependencies are found with CMake's conventions
@@ -139,11 +145,23 @@ ELSE(G2O_FOUND)
   SET(${PROJECT_NAME}_G2O_INCLUDE "" CACHE PATH "Directory of G2O include")
 ENDIF(G2O_FOUND)
 
+
+# Find Opencv
+FIND_PACKAGE(OpenCV)
+INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
+
+
+
+
 include_directories(${G2O_INCLUDE_DIR})
 
 include_directories(src)
 
 include_directories(include ${catkin_INCLUDE_DIRS})
+
+
+
+
 
 add_executable(srslam 
   src/srslam.cpp
@@ -262,6 +280,80 @@ target_link_libraries(bag_mrslam
   ${G2O_TYPES_SLAM2D}
 )
 add_dependencies(bag_mrslam cg_mrslam_generate_messages_cpp)
+
+
+
+
+add_executable(sr_slam_map
+  src/sr_slam_map.cpp 
+  src/ros_handler.cpp
+  src/graph_ros_publisher.cpp
+  src/matcher/scan_matcher.cpp
+  src/matcher/chargrid.cpp
+  src/slam/closure_checker.cpp
+  src/slam/closure_buffer.cpp
+  src/slam/vertices_finder.cpp
+  src/slam/graph_manipulator.cpp
+  src/slam/graph_slam.cpp
+  src/mrslam/mr_graph_slam.cpp
+  src/mrslam/msg_factory.cpp
+  src/mrslam/mr_closure_buffer.cpp
+  src/mrslam/graph_comm.cpp
+  src/mrslam/condensedGraphs/condensed_graph_buffer.cpp
+  src/mrslam/condensedGraphs/edge_labeler.cpp
+  src/mrslam/condensedGraphs/condensed_graph_creator.cpp  
+  src/occ_grid/frequency_map.cpp
+  src/occ_grid/grid_line_traversal.cpp
+  src/occ_grid/g2o_2_occ.cpp
+)
+target_link_libraries(sr_slam_map
+  ${catkin_LIBRARIES}  
+  ${CSPARSE_LIBRARY}
+  ${G2O_TYPES_DATA}
+  ${G2O_SOLVER_CSPARSE_EXTENSION}
+  ${G2O_SOLVER_CSPARSE}
+  ${G2O_CORE_LIBRARY}
+  ${G2O_STUFF_LIBRARY}
+  ${G2O_TYPES_SLAM2D}
+  ${OpenCV_LIBS}
+)
+add_dependencies(sr_slam_map cg_mrslam_generate_messages_cpp)
+
+
+
+
+
+
+
+
+
+
+
+
+## Declare a C++ executable
+add_executable(graph_slam_occ
+  src/g2o2ros_node_tf.cpp
+  src/occ_grid/frequency_map.cpp
+  src/occ_grid/grid_line_traversal.cpp)
+
+
+
+target_link_libraries(graph_slam_occ
+  ${OpenCV_LIBS}
+  ${G2O_CORE_LIBRARY}
+#   ${G2O_OPENGL_HELPER_LIBRARY}
+   ${G2O_TYPES_DATA}
+   ${G2O_TYPES_SLAM2D}
+#   ${G2O_TYPES_SLAM3D}
+${G2O_STUFF_LIBRARY}
+   ${G2O_SOLVER_CSPARSE}
+   ${G2O_SOLVER_CSPARSE_EXTENSION}
+   ${CSPARSE_LIBRARY}
+      ${catkin_LIBRARIES}
+)
+
+
+
 
 
 #############
