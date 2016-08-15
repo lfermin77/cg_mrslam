@@ -1,23 +1,6 @@
-#include "occ_grid/frequency_map.h"
 
-//ROS
-#include "nav_msgs/GetMap.h"
-//tf
-#include <tf/transform_listener.h>
-#include <tf/transform_broadcaster.h>
-//g2o
-#include "g2o/core/block_solver.h"
-#include "g2o/core/factory.h"
-#include "g2o/core/optimization_algorithm_gauss_newton.h"
-#include "g2o/core/optimization_algorithm_levenberg.h"
+#include "g2o_2_occ.h"
 
-#include "g2o/solvers/csparse/linear_solver_csparse.h"
-
-#include "g2o/types/data/robot_laser.h"
-#include "g2o/types/slam2d/vertex_se2.h"
-#include "g2o/types/slam2d/parameter_se2_offset.h"
-
-#include "g2o/stuff/command_args.h"
 
 
 
@@ -26,7 +9,17 @@ using namespace Eigen;
 using namespace g2o;
 
 
-int read_and_publish(nav_msgs::OccupancyGrid &map_msg, SparseOptimizer *graph) {
+Graph2RosMap::Graph2RosMap(){
+	map_pub_ =  _nh.advertise<nav_msgs::OccupancyGrid>("map", 10);
+	laser_frame_id = "base_laser_link";
+}
+
+
+
+
+
+
+int Graph2RosMap::graph_2_occ(nav_msgs::OccupancyGrid &map_msg, SparseOptimizer *graph) {
 	/************************************************************************
 	*                          Input handling                              *
 	************************************************************************/
@@ -175,6 +168,10 @@ int read_and_publish(nav_msgs::OccupancyGrid &map_msg, SparseOptimizer *graph) {
 	/************************************************************************
 	*                          Save map Occupancy Grid                              *
 	************************************************************************/
+
+	laser_frame_id = map_msg.header.frame_id;
+	map_msg.header.frame_id = "map";
+	
 	map_msg.info.resolution = resolution;
 	map_msg.info.width = map.rows();
 	map_msg.info.height = map.cols();
@@ -204,9 +201,23 @@ int read_and_publish(nav_msgs::OccupancyGrid &map_msg, SparseOptimizer *graph) {
 	map_msg.data = data_vector;
 	
 	
-	
-	
-	
+/////////////////////	
+	map_pub_.publish(map_msg);
+//////////////////////	
 	return 0;
 }
 
+
+
+tf::Transform Graph2RosMap::update_transform(g2o::SE2 optimized, g2o::SE2 odom){	
+	
+	SE2 adjust = optimized * odom.inverse();
+	
+	tf::Quaternion q;
+	q.setRPY(0, 0, adjust.rotation().angle() );
+	
+	tf::Transform tf_adjust = tf::Transform(q, tf::Vector3(adjust.translation().x(), adjust.translation().y(), 0));
+	
+	return tf_adjust;
+//	return tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0));
+}

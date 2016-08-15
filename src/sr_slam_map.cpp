@@ -33,8 +33,10 @@
 
 #include "mrslam/mr_graph_slam.h"
 #include "mrslam/graph_comm.h"
-#include "ros_handler.h"
+
 #include "graph_ros_publisher.h"
+#include "ros_handler.h"
+#include "occ_grid/g2o_2_occ.h"
 
 //tf
 #include <tf/transform_listener.h>
@@ -58,11 +60,13 @@ int main(int argc, char **argv)
   int nRobots;
   std::string outputFilename;
   std::string odometryTopic, scanTopic, fixedFrame;
+  
+//  ros::Publisher map_pub_ =  n.advertise<nav_msgs::OccupancyGrid>("map", 10);
 
   arg.param("resolution",  resolution, 0.025, "resolution of the matching grid");
   arg.param("maxScore",    maxScore, 0.15,     "score of the matcher, the higher the less matches");
   arg.param("kernelRadius", kernelRadius, 0.2,  "radius of the convolution kernel");
-  arg.param("minInliers",    minInliers, 7,     "min inliers");
+  arg.param("minInliers",    minInliers, 5,     "min inliers");
   arg.param("windowLoopClosure",  windowLoopClosure, 10,   "sliding window for loop closures");
   arg.param("inlierThreshold",  inlierThreshold, 2.,   "inlier threshold");
   arg.param("idRobot", idRobot, 0, "robot identifier" );
@@ -72,7 +76,7 @@ int main(int argc, char **argv)
   arg.param("windowMRLoopClosure",  windowMRLoopClosure, 10,   "sliding window for the intra-robot loop closures");
   arg.param("odometryTopic", odometryTopic, "odom", "odometry ROS topic");
   arg.param("scanTopic", scanTopic, "scan", "scan ROS topic");
-  arg.param("fixedFrame", fixedFrame, "odom", "fixed frame to visualize the graph with ROS Rviz");
+  arg.param("fixedFrame", fixedFrame, "map", "fixed frame to visualize the graph with ROS Rviz");
   arg.param("o", outputFilename, "", "file where to save output");
   arg.parseArgs(argc, argv);
 
@@ -84,8 +88,11 @@ int main(int argc, char **argv)
   rh.useOdom(true);
   rh.useLaser(true);
 
+
   rh.init();   //Wait for initial odometry and laserScan
   rh.run();
+
+  tf::Transform  g2o_transform = tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0));	
  
   //For estimation
   SE2 currEst = rh.getOdom();
@@ -106,6 +113,8 @@ int main(int argc, char **argv)
   gslam.setInitialData(odomPosk_1, rlaser);
 
   GraphRosPublisher graphPublisher(gslam.graph(), fixedFrame);
+
+  Graph2RosMap g2map;
 
   ////////////////////
   //Setting up network
@@ -136,18 +145,27 @@ int main(int argc, char **argv)
       gslam.optimize(5);
       
       nav_msgs::OccupancyGrid map_msg;	
-//	  map_msg.header =msg.header;
-
+	  map_msg.header = rh.laser().header;
+	  
+	  g2map.graph_2_occ(map_msg, gslam.graph());
 
       currEst = gslam.lastVertex()->estimate();
-      char buf[100];
-      sprintf(buf, "robot-%i-%s", idRobot, outputFilename.c_str());
-//      gslam.saveGraph(buf);
+      
+      g2o_transform = g2map.update_transform(currEst, odomPosk);
+      
 
       //Publish graph to visualize it on Rviz
       graphPublisher.publishGraph();
+      
+
+
+      
 
     }
+
+   		static tf::TransformBroadcaster tf_broadcaster;
+		tf::StampedTransform map_transform = tf::StampedTransform(g2o_transform, ros::Time::now(), "map", "odom");
+		tf_broadcaster.sendTransform(map_transform);
     
     loop_rate.sleep();
   }
