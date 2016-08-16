@@ -520,13 +520,13 @@ void GraphSLAM::checkClosures(){
       LoopClosureChecker::EdgeDoubleMap results = lcc.closures();
       cout << "Results:" << endl;
       for (LoopClosureChecker::EdgeDoubleMap::iterator it= results.begin(); it!= results.end(); it++){
-	EdgeSE2* e = (EdgeSE2*) (it->first);
-	cout << "Edge from: " << e->vertices()[0]->id() << " to: " << e->vertices()[1]->id() << ". Chi2 = " << it->second <<  endl;
-
-	if (it->second < inlierThreshold){
-	  cout << "Is an inlier. Adding to Graph" << endl;
-	  _graph->addEdge(e);
-	}
+		EdgeSE2* e = (EdgeSE2*) (it->first);
+		cout << "Edge from: " << e->vertices()[0]->id() << " to: " << e->vertices()[1]->id() << ". Chi2 = " << it->second <<  endl;
+	
+		if (it->second < inlierThreshold){
+		  cout << "Is an inlier. Adding to Graph" << endl;
+		  _graph->addEdge(e);
+		}
       }
     }
   }

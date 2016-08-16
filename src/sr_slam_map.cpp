@@ -75,7 +75,7 @@ int main(int argc, char **argv)
   arg.param("minInliersMR",    minInliersMR, 5,     "min inliers for the intra-robot loop closure");
   arg.param("windowMRLoopClosure",  windowMRLoopClosure, 10,   "sliding window for the intra-robot loop closures");
   arg.param("odometryTopic", odometryTopic, "odom", "odometry ROS topic");
-  arg.param("scanTopic", scanTopic, "scan", "scan ROS topic");
+  arg.param("scanTopic", scanTopic, "base_scan", "scan ROS topic");
   arg.param("fixedFrame", fixedFrame, "map", "fixed frame to visualize the graph with ROS Rviz");
   arg.param("o", outputFilename, "", "file where to save output");
   arg.parseArgs(argc, argv);
@@ -153,10 +153,16 @@ int main(int argc, char **argv)
       
       g2o_transform = g2map.update_transform(currEst, odomPosk);
       
+      visualization_msgs::Marker marker;
+	  marker.header = rh.laser().header;
+      g2map.publish_markers(marker,gslam.graph());
 
       //Publish graph to visualize it on Rviz
       graphPublisher.publishGraph();
       
+      char buf[100];
+      sprintf(buf, "robot-%i-%s", idRobot, outputFilename.c_str());
+//      gslam.saveGraph(buf);
 
 
       

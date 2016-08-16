@@ -132,6 +132,7 @@ int main(int argc, char **argv)
       currEst = gslam.lastVertex()->estimate();
       char buf[100];
       sprintf(buf, "robot-%i-%s", idRobot, outputFilename.c_str());
+      
       gslam.saveGraph(buf);
 
       //Publish graph to visualize it on Rviz
