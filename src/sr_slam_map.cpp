@@ -32,7 +32,7 @@
 #include <sstream> 
 
 #include "mrslam/mr_graph_slam.h"
-#include "mrslam/graph_comm.h"
+
 
 #include "graph_ros_publisher.h"
 #include "ros_handler.h"
@@ -116,18 +116,21 @@ int main(int argc, char **argv)
 
   Graph2RosMap g2map;
 
-  ////////////////////
-  //Setting up network
-  std::string base_addr = "192.168.0.";
-  GraphComm gc(&gslam, idRobot, nRobots, base_addr, REAL_EXPERIMENT);
-  gc.init_network(&rh);
 
   ros::Rate loop_rate(10);
+  
+  bool first_publish=true;
+  int cycles=0;
+
 
   while (ros::ok()){
     ros::spinOnce();
+    
 
-    SE2 odomPosk = rh.getOdom(); //current odometry
+	
+
+//    SE2 odomPosk = rh.getOdom(); //current odometry
+    SE2 odomPosk = g2map.listen_tf_odom(); //current odometry
     SE2 relodom = odomPosk_1.inverse() * odomPosk;
     currEst *= relodom;
 
@@ -169,9 +172,19 @@ int main(int argc, char **argv)
 
     }
 
+
+
    		static tf::TransformBroadcaster tf_broadcaster;
 		tf::StampedTransform map_transform = tf::StampedTransform(g2o_transform, ros::Time::now(), "map", "odom");
 		tf_broadcaster.sendTransform(map_transform);
+
+	if( (cycles >5) && first_publish){
+		nav_msgs::OccupancyGrid map_msg;	
+		map_msg.header = rh.laser().header;
+		
+		g2map.graph_2_occ(map_msg, gslam.graph());
+	}
+	else if (first_publish) cycles++;
     
     loop_rate.sleep();
   }

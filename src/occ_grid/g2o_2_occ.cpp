@@ -17,6 +17,28 @@ Graph2RosMap::Graph2RosMap(){
 }
 
 
+g2o::SE2 Graph2RosMap::listen_tf_odom(){
+	
+	tf::TransformListener listener;
+	tf::StampedTransform transform;
+	
+	try{
+		listener.waitForTransform("/odom", laser_frame_id, ros::Time(0), ros::Duration(3.0));
+		listener.lookupTransform ("/odom", laser_frame_id, ros::Time(0), transform);
+	}
+	catch (tf::TransformException &ex) {
+	  ROS_ERROR("listen  stageros transform %s",ex.what());
+	  ros::Duration(1.0).sleep();
+	}
+	
+	
+	g2o::SE2 current_odom(transform.getOrigin().x(), transform.getOrigin().y(), tf::getYaw(transform.getRotation() ));
+	
+	
+	return current_odom;
+}
+
+
 
 int Graph2RosMap::publish_markers(	visualization_msgs::Marker &marker, SparseOptimizer *graph) {
 	

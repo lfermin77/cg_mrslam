@@ -38,6 +38,7 @@ class Graph2RosMap
 	int graph_2_occ(nav_msgs::OccupancyGrid &map_msg, SparseOptimizer *graph) ;
 	tf::Transform update_transform(g2o::SE2 optimized, g2o::SE2 odom );
 	int publish_markers( visualization_msgs::Marker &marker, SparseOptimizer *graph) ;
+	g2o::SE2 listen_tf_odom();
 
  protected:
   ros::NodeHandle _nh;
