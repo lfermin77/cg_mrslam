@@ -35,10 +35,13 @@ class Graph2RosMap
 {
  public:
 	Graph2RosMap();
-	int graph_2_occ(nav_msgs::OccupancyGrid &map_msg, SparseOptimizer *graph) ;
+	Graph2RosMap(string laser_frame, string fixed_frame, string odom_frame);
+	int graph_2_occ( SparseOptimizer *graph) ;
 	tf::Transform update_transform(g2o::SE2 optimized, g2o::SE2 odom );
-	int publish_markers( visualization_msgs::Marker &marker, SparseOptimizer *graph) ;
+	int publish_markers(  SparseOptimizer *graph) ;
 	g2o::SE2 listen_tf_odom();
+	
+	void init_laser_id(string new_frame_id){ laser_frame_id = new_frame_id;}
 
  protected:
   ros::NodeHandle _nh;
@@ -46,6 +49,10 @@ class Graph2RosMap
   ros::Publisher markers_pub_;
   string laser_frame_id;
   string fixed_frame_id;
+  string odom_frame_id;
+  
+  int marker_seq;
+  int map_seq;
 
 
 };

@@ -11,9 +11,24 @@ using namespace g2o;
 
 Graph2RosMap::Graph2RosMap(){
 	markers_pub_     =  _nh.advertise<visualization_msgs::Marker>( "SLAM_Graph", 10 );
-	map_pub_ =  _nh.advertise<nav_msgs::OccupancyGrid>("map", 10);
+	map_pub_         =  _nh.advertise<nav_msgs::OccupancyGrid>("map", 10);
 	laser_frame_id = "base_laser_link";
 	fixed_frame_id = "map";
+	odom_frame_id  = "odom";
+	
+	marker_seq=0;
+    map_seq=0;
+}
+
+Graph2RosMap::Graph2RosMap(string laser_frame, string fixed_frame, string odom_frame){
+	markers_pub_     =  _nh.advertise<visualization_msgs::Marker>( "SLAM_Graph", 10 );
+	map_pub_         =  _nh.advertise<nav_msgs::OccupancyGrid>("map", 10);
+	laser_frame_id = laser_frame;
+	fixed_frame_id = fixed_frame;
+	odom_frame_id  = odom_frame;
+	
+	marker_seq=0;
+    map_seq=0;
 }
 
 
@@ -23,8 +38,8 @@ g2o::SE2 Graph2RosMap::listen_tf_odom(){
 	tf::StampedTransform transform;
 	
 	try{
-		listener.waitForTransform("/odom", laser_frame_id, ros::Time(0), ros::Duration(3.0));
-		listener.lookupTransform ("/odom", laser_frame_id, ros::Time(0), transform);
+		listener.waitForTransform(odom_frame_id, laser_frame_id, ros::Time(0), ros::Duration(3.0));
+		listener.lookupTransform (odom_frame_id, laser_frame_id, ros::Time(0), transform);
 	}
 	catch (tf::TransformException &ex) {
 	  ROS_ERROR("listen  stageros transform %s",ex.what());
@@ -40,14 +55,16 @@ g2o::SE2 Graph2RosMap::listen_tf_odom(){
 
 
 
-int Graph2RosMap::publish_markers(	visualization_msgs::Marker &marker, SparseOptimizer *graph) {
+int Graph2RosMap::publish_markers( SparseOptimizer *graph) {
 	
-	
+	visualization_msgs::Marker marker;
+
 	marker.header.frame_id = fixed_frame_id;
+	marker.header.seq = marker_seq;
+	marker.header.stamp = ros::Time();
+	marker_seq++;
 	
-//	visualization_msgs::Marker marker;
-//	marker.header.frame_id = fixed_frame_id;
-//	marker.header.stamp = ros::Time();
+
 	marker.ns = "my_namespace";
 	marker.id = 0;
 	marker.type = visualization_msgs::Marker::LINE_LIST;
@@ -111,7 +128,7 @@ int Graph2RosMap::publish_markers(	visualization_msgs::Marker &marker, SparseOpt
 
 
 
-int Graph2RosMap::graph_2_occ(nav_msgs::OccupancyGrid &map_msg, SparseOptimizer *graph) {
+int Graph2RosMap::graph_2_occ( SparseOptimizer *graph) {
 	/************************************************************************
 	*                          Input handling                              *
 	************************************************************************/
@@ -267,8 +284,12 @@ int Graph2RosMap::graph_2_occ(nav_msgs::OccupancyGrid &map_msg, SparseOptimizer 
 	*                          Save map Occupancy Grid                              *
 	************************************************************************/
 
-	laser_frame_id = map_msg.header.frame_id;
-	map_msg.header.frame_id = fixed_frame_id;
+	nav_msgs::OccupancyGrid map_msg;
+	
+	map_msg.header.frame_id = fixed_frame_id;	
+	map_msg.header.seq = map_seq;
+	map_msg.header.stamp = ros::Time();
+	map_seq++;	
 	
 	map_msg.info.resolution = resolution;
 	map_msg.info.width = map.rows();

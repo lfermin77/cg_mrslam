@@ -59,7 +59,7 @@ int main(int argc, char **argv)
   int idRobot;
   int nRobots;
   std::string outputFilename;
-  std::string odometryTopic, scanTopic, fixedFrame;
+  std::string odometryTopic, scanTopic, fixedFrame, odomFrame;
   
 //  ros::Publisher map_pub_ =  n.advertise<nav_msgs::OccupancyGrid>("map", 10);
 
@@ -77,6 +77,7 @@ int main(int argc, char **argv)
   arg.param("odometryTopic", odometryTopic, "odom", "odometry ROS topic");
   arg.param("scanTopic", scanTopic, "base_scan", "scan ROS topic");
   arg.param("fixedFrame", fixedFrame, "map", "fixed frame to visualize the graph with ROS Rviz");
+  arg.param("odomFrame", odomFrame, "odom", "frame reference for odometry");
   arg.param("o", outputFilename, "", "file where to save output");
   arg.parseArgs(argc, argv);
 
@@ -114,7 +115,7 @@ int main(int argc, char **argv)
 
   GraphRosPublisher graphPublisher(gslam.graph(), fixedFrame);
 
-  Graph2RosMap g2map;
+  Graph2RosMap g2map(rh.laser().header.frame_id, fixedFrame, odomFrame);
 
 
   ros::Rate loop_rate(10);
@@ -125,8 +126,6 @@ int main(int argc, char **argv)
 
   while (ros::ok()){
     ros::spinOnce();
-    
-
 	
 
 //    SE2 odomPosk = rh.getOdom(); //current odometry
@@ -146,19 +145,14 @@ int main(int argc, char **argv)
       gslam.findInterRobotConstraints();
 
       gslam.optimize(5);
-      
-      nav_msgs::OccupancyGrid map_msg;	
-	  map_msg.header = rh.laser().header;
 	  
-	  g2map.graph_2_occ(map_msg, gslam.graph());
-
       currEst = gslam.lastVertex()->estimate();
+
+	  g2map.graph_2_occ(gslam.graph());
+      g2map.publish_markers(gslam.graph());
       
       g2o_transform = g2map.update_transform(currEst, odomPosk);
       
-      visualization_msgs::Marker marker;
-	  marker.header = rh.laser().header;
-      g2map.publish_markers(marker,gslam.graph());
 
       //Publish graph to visualize it on Rviz
       graphPublisher.publishGraph();
@@ -166,25 +160,20 @@ int main(int argc, char **argv)
       char buf[100];
       sprintf(buf, "robot-%i-%s", idRobot, outputFilename.c_str());
 //      gslam.saveGraph(buf);
-
-
-      
-
     }
 
 
 
    		static tf::TransformBroadcaster tf_broadcaster;
-		tf::StampedTransform map_transform = tf::StampedTransform(g2o_transform, ros::Time::now(), "map", "odom");
+		tf::StampedTransform map_transform = tf::StampedTransform(g2o_transform, ros::Time::now(), fixedFrame, odomFrame);
 		tf_broadcaster.sendTransform(map_transform);
 
+	///Improve
 	if( (cycles >5) && first_publish){
-		nav_msgs::OccupancyGrid map_msg;	
-		map_msg.header = rh.laser().header;
-		
-		g2map.graph_2_occ(map_msg, gslam.graph());
+		g2map.graph_2_occ(gslam.graph());
 	}
 	else if (first_publish) cycles++;
+    ///
     
     loop_rate.sleep();
   }
