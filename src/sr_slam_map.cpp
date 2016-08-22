@@ -171,6 +171,7 @@ int main(int argc, char **argv)
 	///Improve
 	if( (cycles >5) && first_publish){
 		g2map.graph_2_occ(gslam.graph());
+		graphPublisher.publishGraph();
 	}
 	else if (first_publish) cycles++;
     ///

@@ -21,6 +21,8 @@
 #include "g2o/stuff/command_args.h"
 
 #include "visualization_msgs/Marker.h"
+#include "geometry_msgs/PoseArray.h"
+#include "geometry_msgs/PoseWithCovariance.h"
 
 
 
@@ -43,10 +45,15 @@ class Graph2RosMap
 	
 	void init_laser_id(string new_frame_id){ laser_frame_id = new_frame_id;}
 
+	void PoseArrayCallback(const geometry_msgs::PoseArray& pose_array_msg);
+
  protected:
   ros::NodeHandle _nh;
   ros::Publisher map_pub_;
   ros::Publisher markers_pub_;
+  ros::Publisher Uncertainty_pub_;
+  ros::Subscriber pose_array_sub_;
+  
   string laser_frame_id;
   string fixed_frame_id;
   string odom_frame_id;
