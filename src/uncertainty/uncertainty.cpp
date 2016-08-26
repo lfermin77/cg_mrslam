@@ -1,4 +1,4 @@
-#include "g2o_2_occ.h"
+#include "uncertainty.h"
 
 
 
@@ -10,6 +10,8 @@ using namespace g2o;
 Graph2RosMap::Graph2RosMap(){
 	markers_pub_     =  _nh.advertise<visualization_msgs::Marker>( "SLAM_Graph", 10 );
 	map_pub_         =  _nh.advertise<nav_msgs::OccupancyGrid>("map", 10);
+	Uncertainty_pub_ =  _nh.advertise<geometry_msgs::PoseWithCovariance>("query_Uncertainty", 10);
+	pose_array_sub_  =  _nh.subscribe("query_Poses", 10, &Graph2RosMap::PoseArrayCallback, this);
 	laser_frame_id = "base_laser_link";
 	fixed_frame_id = "map";
 	odom_frame_id  = "odom";
@@ -21,6 +23,9 @@ Graph2RosMap::Graph2RosMap(){
 Graph2RosMap::Graph2RosMap(string laser_frame, string fixed_frame, string odom_frame){
 	markers_pub_     =  _nh.advertise<visualization_msgs::Marker>( "SLAM_Graph", 10 );
 	map_pub_         =  _nh.advertise<nav_msgs::OccupancyGrid>("map", 10);
+	
+	Uncertainty_pub_ =  _nh.advertise<geometry_msgs::PoseWithCovariance>("query_Uncertainty", 10);
+	pose_array_sub_  =  _nh.subscribe("query_Poses", 10, &Graph2RosMap::PoseArrayCallback, this);
 
 	laser_frame_id = laser_frame;
 	fixed_frame_id = fixed_frame;
@@ -51,6 +56,7 @@ g2o::SE2 Graph2RosMap::listen_tf_odom(){
 	
 	return current_odom;
 }
+
 
 
 int Graph2RosMap::publish_markers( SparseOptimizer *graph) {
@@ -116,6 +122,8 @@ int Graph2RosMap::publish_markers( SparseOptimizer *graph) {
 	
 	return 0;
 }
+
+
 
 
 int Graph2RosMap::graph_2_occ( SparseOptimizer *graph) {
@@ -317,6 +325,7 @@ int Graph2RosMap::graph_2_occ( SparseOptimizer *graph) {
 }
 
 
+
 tf::Transform Graph2RosMap::update_transform(g2o::SE2 optimized, g2o::SE2 odom){	
 	
 	SE2 adjust = optimized * odom.inverse();
@@ -328,6 +337,13 @@ tf::Transform Graph2RosMap::update_transform(g2o::SE2 optimized, g2o::SE2 odom){
 	
 	return tf_adjust;
 //	return tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0));
+}
+
+/////////////////////////
+void Graph2RosMap::PoseArrayCallback(const geometry_msgs::PoseArray& pose_array_msg){
+	geometry_msgs::PoseWithCovariance pepe;
+//	Uncertainty_pub_.publish(pepe);
+	
 }
 
 

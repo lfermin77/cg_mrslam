@@ -330,29 +330,6 @@ add_dependencies(sr_slam_map cg_mrslam_generate_messages_cpp)
 
 
 
-## Declare a C++ executable
-add_executable(graph_slam_occ
-  src/g2o2ros_node_tf.cpp
-  src/occ_grid/frequency_map.cpp
-  src/occ_grid/grid_line_traversal.cpp)
-
-
-
-target_link_libraries(graph_slam_occ
-  ${OpenCV_LIBS}
-  ${G2O_CORE_LIBRARY}
-#   ${G2O_OPENGL_HELPER_LIBRARY}
-   ${G2O_TYPES_DATA}
-   ${G2O_TYPES_SLAM2D}
-#   ${G2O_TYPES_SLAM3D}
-${G2O_STUFF_LIBRARY}
-   ${G2O_SOLVER_CSPARSE}
-   ${G2O_SOLVER_CSPARSE_EXTENSION}
-   ${CSPARSE_LIBRARY}
-      ${catkin_LIBRARIES}
-)
-
-
 
 
 

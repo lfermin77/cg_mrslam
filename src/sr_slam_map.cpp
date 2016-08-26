@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Maria Teresa Lazaro Grañon
+// Copyright (c) 2013, Maria Teresa Lazaro Grañon/Leonardo Fermin
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without modification,
