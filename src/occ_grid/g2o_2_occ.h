@@ -49,8 +49,6 @@ class Graph2RosMap
   ros::NodeHandle _nh;
   ros::Publisher map_pub_;
   ros::Publisher markers_pub_;
-//  ros::Publisher Uncertainty_pub_;
-//  ros::Subscriber pose_array_sub_;
   
   string laser_frame_id;
   string fixed_frame_id;
