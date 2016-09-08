@@ -109,7 +109,7 @@ int main(int argc, char **argv)
   gslam.init(resolution, kernelRadius, windowLoopClosure, maxScore, inlierThreshold, minInliers);
   gslam.setInterRobotClosureParams(maxScoreMR, minInliersMR, windowMRLoopClosure);
 
-  RobotLaser* rlaser = rh.getLaser();
+  RobotLaser* rlaser;// = rh.getLaser();
 
   gslam.setInitialData(odomPosk_1, rlaser);
 
