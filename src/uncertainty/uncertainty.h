@@ -36,8 +36,8 @@ using namespace g2o;
 class GraphUncertainty
 {
  public:
-	GraphUncertainty();
-	GraphUncertainty(string laser_frame, string fixed_frame, string odom_frame);
+	GraphUncertainty(SparseOptimizer* graph);
+
 
 	g2o::SE2 listen_tf_odom();
 	
@@ -53,6 +53,8 @@ class GraphUncertainty
   string laser_frame_id;
   string fixed_frame_id;
   string odom_frame_id;
+
+  SparseOptimizer* _graph;
   
   int marker_seq;
   int map_seq;

@@ -117,7 +117,7 @@ int main(int argc, char **argv)
   GraphRosPublisher graphPublisher(gslam.graph(), fixedFrame);
 
   Graph2RosMap g2map(rh.laser().header.frame_id, fixedFrame, odomFrame);
-
+  GraphUncertainty uncertain(gslam.graph());
 
   ros::Rate loop_rate(10);
   
