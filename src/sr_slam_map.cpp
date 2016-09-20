@@ -37,6 +37,7 @@
 #include "graph_ros_publisher.h"
 #include "ros_handler.h"
 #include "occ_grid/g2o_2_occ.h"
+#include "uncertainty/uncertainty.h"
 
 //tf
 #include <tf/transform_listener.h>

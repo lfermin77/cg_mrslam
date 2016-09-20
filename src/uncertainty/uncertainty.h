@@ -33,14 +33,12 @@ using namespace g2o;
 
 
 
-class Graph2RosMap
+class GraphUncertainty
 {
  public:
-	Graph2RosMap();
-	Graph2RosMap(string laser_frame, string fixed_frame, string odom_frame);
-	int graph_2_occ( SparseOptimizer *graph) ;
-	tf::Transform update_transform(g2o::SE2 optimized, g2o::SE2 odom );
-	int publish_markers(  SparseOptimizer *graph) ;
+	GraphUncertainty();
+	GraphUncertainty(string laser_frame, string fixed_frame, string odom_frame);
+
 	g2o::SE2 listen_tf_odom();
 	
 	void init_laser_id(string new_frame_id){ laser_frame_id = new_frame_id;}
@@ -49,8 +47,6 @@ class Graph2RosMap
 
  protected:
   ros::NodeHandle _nh;
-  ros::Publisher map_pub_;
-  ros::Publisher markers_pub_;
   ros::Publisher Uncertainty_pub_;
   ros::Subscriber pose_array_sub_;
   
