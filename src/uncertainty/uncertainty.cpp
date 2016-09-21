@@ -30,10 +30,30 @@ void GraphUncertainty::PoseArrayCallback(const geometry_msgs::PoseArray& pose_ar
 	geometry_msgs::PoseWithCovariance pepe;
 //	Uncertainty_pub_.publish(pepe);
 	std::cout << "Im in" << std::endl;
-	std::vector< std::pair<int,int> > retrievalList_Big;
-	
-//	g2o::SparseBlockMatrix<Eigen::MatrixXd> spinv_Big(idx_Big.data(),idy_Big.data(),Trayectory_size*Trayectory_size , Trayectory_size*Trayectory_size);
-	g2o::SparseBlockMatrix<Eigen::MatrixXd> spinv_Big;
+		std::vector< std::pair<int,int> > retrievalList_Big;
+		//	int idx_Big[Trayectory_size*Trayectory_size] ;	
+		//	int idy_Big[Trayectory_size*Trayectory_size];
+		
+		int Trayectory_size=2;
+		
+		std::vector<int> idx_Big;
+		idx_Big.resize(Trayectory_size*Trayectory_size);
+		
+		std::vector<int> idy_Big;
+		idy_Big.resize(Trayectory_size*Trayectory_size);
+		
+		
+		for(int i=0 ; i < Trayectory_size ; i ++){
+			for (int j=0 ; j < Trayectory_size ; j ++){
+				idx_Big[i+Trayectory_size*j] = 2;
+				idy_Big[i+Trayectory_size*j] = 3;
+		
+			}
+		}		
+		for(int i=0 ; i < Trayectory_size*Trayectory_size ; i ++)
+			retrievalList_Big.push_back( std::pair<int,int>(idx_Big[i],idy_Big[i]));
+
+		g2o::SparseBlockMatrix<Eigen::MatrixXd> spinv_Big(idx_Big.data(),idy_Big.data(),Trayectory_size*Trayectory_size , Trayectory_size*Trayectory_size);
 
 						
 	_graph->solver()->computeMarginals(spinv_Big,retrievalList_Big);

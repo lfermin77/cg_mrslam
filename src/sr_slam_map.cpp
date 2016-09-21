@@ -36,6 +36,8 @@
 
 #include "graph_ros_publisher.h"
 #include "ros_handler.h"
+
+//Additional components
 #include "occ_grid/g2o_2_occ.h"
 #include "uncertainty/uncertainty.h"
 
