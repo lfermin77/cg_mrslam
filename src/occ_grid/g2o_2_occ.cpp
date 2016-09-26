@@ -98,11 +98,12 @@ int Graph2RosMap::publish_markers( SparseOptimizer *graph) {
 		
 		point_from.x = vfrom->estimate().translation().x();
 		point_from.y = vfrom->estimate().translation().y();
-		point_from.z = 0;
+		point_from.z = double(vfrom->id())/100;
+
 		
 		point_to.x = vto->estimate().translation().x();
 		point_to.y = vto->estimate().translation().y();
-		point_to.z = 0;
+		point_to.z = double(vto->id())/100;
 
 		marker.points.push_back(point_from);
 		marker.points.push_back(point_to);
