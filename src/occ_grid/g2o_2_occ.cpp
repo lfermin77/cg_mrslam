@@ -356,7 +356,7 @@ void Graph2RosMap::GT_callback(const nav_msgs::Odometry::ConstPtr& msg){
 		
 		geometry_msgs::Point zero;
 		zero.x=zero.y=zero.z=0;
-		GT_trajectory.push_back(zero);
+//		GT_trajectory.push_back(zero);
 	}
 	else{
 		current_position.y = -(msg->pose.pose.position.x - first_position->x);
