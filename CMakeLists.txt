@@ -292,6 +292,7 @@ add_dependencies(bag_mrslam cg_mrslam_generate_messages_cpp)
 
 
 
+
 add_executable(sr_slam_map
   src/sr_slam_map.cpp 
   src/ros_handler.cpp

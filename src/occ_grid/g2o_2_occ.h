@@ -2,6 +2,9 @@
 
 //ROS
 #include "nav_msgs/GetMap.h"
+#include "nav_msgs/Odometry.h"
+#include "visualization_msgs/Marker.h"
+
 //tf
 #include <tf/transform_listener.h>
 #include <tf/transform_broadcaster.h>
@@ -20,7 +23,7 @@
 
 #include "g2o/stuff/command_args.h"
 
-#include "visualization_msgs/Marker.h"
+
 
 
 
@@ -42,13 +45,18 @@ class Graph2RosMap
 	g2o::SE2 listen_tf_odom();
 	
 	void init_laser_id(string new_frame_id){ laser_frame_id = new_frame_id;}
-
+	
+	void GT_callback(const nav_msgs::Odometry::ConstPtr& msg);
+	void publish_ground_truth();
 
 
  protected:
   ros::NodeHandle _nh;
   ros::Publisher map_pub_;
   ros::Publisher markers_pub_;
+  ros::Publisher GT_trajectory_pub_;
+  
+  ros::Subscriber GT_sub_;
   
   string laser_frame_id;
   string fixed_frame_id;
@@ -56,6 +64,11 @@ class Graph2RosMap
   
   int marker_seq;
   int map_seq;
+  
+  geometry_msgs::Point current_position;
+  geometry_msgs::Point* first_position;
+  
+  std::vector<geometry_msgs::Point> GT_trajectory;
 
 
 };

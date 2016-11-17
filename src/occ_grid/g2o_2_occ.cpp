@@ -7,6 +7,7 @@ using namespace Eigen;
 using namespace g2o;
 
 
+
 Graph2RosMap::Graph2RosMap(){
 	markers_pub_     =  _nh.advertise<visualization_msgs::Marker>( "SLAM_Graph", 10 );
 	map_pub_         =  _nh.advertise<nav_msgs::OccupancyGrid>("map", 10);
@@ -16,6 +17,11 @@ Graph2RosMap::Graph2RosMap(){
 	
 	marker_seq=0;
     map_seq=0;
+    
+	GT_sub_ = _nh.subscribe<nav_msgs::Odometry>("base_pose_ground_truth", 1000, &Graph2RosMap::GT_callback, this);
+	first_position=NULL;
+	
+	GT_trajectory_pub_ =  _nh.advertise<visualization_msgs::Marker>("GT_poses", 10);
 }
 
 Graph2RosMap::Graph2RosMap(string laser_frame, string fixed_frame, string odom_frame){
@@ -28,6 +34,11 @@ Graph2RosMap::Graph2RosMap(string laser_frame, string fixed_frame, string odom_f
 	
 	marker_seq=0;
     map_seq=0;
+    
+	GT_sub_ = _nh.subscribe<nav_msgs::Odometry>("base_pose_ground_truth", 1000, &Graph2RosMap::GT_callback, this);
+	first_position=NULL;
+	
+	GT_trajectory_pub_ =  _nh.advertise<visualization_msgs::Marker>("GT_poses", 10);
 }
 
 
@@ -112,7 +123,10 @@ int Graph2RosMap::publish_markers( SparseOptimizer *graph) {
 	
 //	EdgeSE2* e=dynamic_cast<EdgeSE2*>(*eset.begin());
 
+	publish_ground_truth();// probably with an "if"
+	
 	markers_pub_.publish( marker );	
+
 	
 	
 	return 0;
@@ -330,6 +344,68 @@ tf::Transform Graph2RosMap::update_transform(g2o::SE2 optimized, g2o::SE2 odom){
 	return tf_adjust;
 //	return tf::Transform(tf::Quaternion(0, 0, 0, 1), tf::Vector3(0, 0, 0));
 }
+
+
+
+void Graph2RosMap::GT_callback(const nav_msgs::Odometry::ConstPtr& msg){
+	if (first_position==NULL){
+		first_position= new geometry_msgs::Point;
+		first_position->x = msg->pose.pose.position.x;
+		first_position->y = msg->pose.pose.position.y;
+		first_position->z = msg->pose.pose.position.z;
+		
+		geometry_msgs::Point zero;
+		zero.x=zero.y=zero.z=0;
+		GT_trajectory.push_back(zero);
+	}
+	else{
+		current_position.y = -(msg->pose.pose.position.x - first_position->x);
+		current_position.x =   msg->pose.pose.position.y - first_position->y ;
+		current_position.z = 0;
+
+	}
+	
+	std::cout <<"GT received "<< std::endl;
+		
+}
+
+
+
+void Graph2RosMap::publish_ground_truth(){
+	visualization_msgs::Marker marker;
+
+	marker.header.frame_id = fixed_frame_id;
+	marker.header.seq = marker_seq;
+	marker.header.stamp = ros::Time();
+	marker_seq++;
+	
+
+	marker.ns = "my_namespace";
+	marker.id = 0;
+	marker.type = visualization_msgs::Marker::LINE_STRIP;
+	marker.action = visualization_msgs::Marker::ADD;
+	marker.pose.position.x = 0;
+	marker.pose.position.y = 0;
+	marker.pose.position.z = 0;
+	marker.pose.orientation.x = 0.0;
+	marker.pose.orientation.y = 0.0;
+	marker.pose.orientation.z = 0.0;
+	marker.pose.orientation.w = 1.0;
+	marker.scale.x = 0.05;
+	marker.scale.y = 0.1;
+	marker.scale.z = 0.1;
+	marker.color.a = 1.0; // Don't forget to set the alpha!
+	marker.color.r = 0.5;
+	marker.color.g = 0.5;
+	marker.color.b = 0.0;
+	
+	GT_trajectory.push_back(current_position);
+
+
+	marker.points = GT_trajectory;
+	GT_trajectory_pub_.publish( marker );	
+}
+
 
 
 
