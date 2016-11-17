@@ -365,7 +365,7 @@ void Graph2RosMap::GT_callback(const nav_msgs::Odometry::ConstPtr& msg){
 
 	}
 	
-	std::cout <<"GT received "<< std::endl;
+//	std::cout <<"GT received "<< std::endl;
 		
 }
 
