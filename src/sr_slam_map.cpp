@@ -40,6 +40,7 @@
 //Additional components
 #include "occ_grid/g2o_2_occ.h"
 #include "uncertainty/uncertainty.h"
+#include "uncertainty/graph_distance.hpp"
 
 //tf
 #include <tf/transform_listener.h>

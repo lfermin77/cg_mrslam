@@ -315,6 +315,7 @@ add_executable(sr_slam_map
   src/occ_grid/grid_line_traversal.cpp
   src/occ_grid/g2o_2_occ.cpp
   src/uncertainty/uncertainty.cpp
+  src/uncertainty/graph_distance.cpp
 )
 target_link_libraries(sr_slam_map
   ${catkin_LIBRARIES}  
