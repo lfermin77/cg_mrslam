@@ -50,6 +50,38 @@
 
 using namespace g2o;
 
+//int find_new_edges( SparseOptimizer *graph, int last_vertex) {
+int find_new_edges(   MRGraphSLAM &gslam_, int window_size) {
+	int a=1;
+	
+	OptimizableGraph::VertexIDMap VertexMap = gslam_.graph()->vertices();
+	
+	int last_edge_id = gslam_.lastVertex()->id();
+	std::cerr << "Last vertex is  "<<   last_edge_id << std::endl;
+	std::cerr << "window_size is  "<<   window_size << std::endl;
+
+	std::cerr << "The vertices are ";
+	for(OptimizableGraph::VertexIDMap::iterator it = VertexMap.begin();  it!= VertexMap.end(); it++){		
+		int b=1;
+		
+		int current_id = it->first;
+		VertexSE2* vcurrent = dynamic_cast<VertexSE2*>(it->second);
+		
+		std::cerr << " "<<current_id;
+		
+	}
+	
+	std::cerr <<std::endl;
+	
+
+
+
+
+	return a;
+}
+
+
+
 int main(int argc, char **argv)
 {
 
@@ -118,6 +150,7 @@ int main(int argc, char **argv)
   gslam.setInitialData(odomPosk_1, rlaser);
 
   GraphRosPublisher graphPublisher(gslam.graph(), fixedFrame);
+  Graph_Distance distance_graph;
 
   Graph2RosMap g2map(rh.laser().header.frame_id, fixedFrame, odomFrame);
   GraphUncertainty uncertain(gslam.graph());
@@ -148,6 +181,14 @@ int main(int argc, char **argv)
       gslam.findConstraints();
       gslam.findInterRobotConstraints();
 
+//	  std::cerr << "Last vertex " << gslam.lastVertex()->id()<< std::endl ;
+//	  find_new_edges(gslam.graph(), gslam.lastVertex()->id());
+	  find_new_edges(gslam, windowLoopClosure);
+		std::cout << " after finding "<<std::endl;
+
+
+	  
+	  
       gslam.optimize(5);
 	  
       currEst = gslam.lastVertex()->estimate();
