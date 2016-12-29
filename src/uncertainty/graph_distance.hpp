@@ -32,6 +32,8 @@ class Graph_Distance{
 
 	int insert_new_node(int label, std::vector< std::pair<int, float> > Connections_label_distance);
 	int insert_new_edge(int label_1, int label_2,  float distance );
+	bool is_node_in_graph(int label);
+	bool is_edge_in_graph(std::set<int> labels);
 
 	
 	

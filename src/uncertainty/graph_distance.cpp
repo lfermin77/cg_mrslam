@@ -264,6 +264,23 @@ int Graph_Distance::extract_central_vertex_label(){
 
 
 
+bool Graph_Distance::is_node_in_graph(int label){
+	std::unordered_map<int, Vertex*>::iterator vertex_iter =  Vertices_map.find(label) ;
+	bool inside = (vertex_iter == Vertices_map.end() )? false : true;
+	return inside;
+}
+
+
+
+
+
+bool Graph_Distance::is_edge_in_graph(std::set<int> labels){
+	std::map<std::set<int>, Arc*>::iterator arc_iter = Arcs_map.find(labels);
+	bool inside = (arc_iter == Arcs_map.end() )? false : true;
+	return inside;
+}
+
+
 
 
 

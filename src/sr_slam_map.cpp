@@ -57,20 +57,50 @@ int find_new_edges(   MRGraphSLAM &gslam_, int window_size) {
 	OptimizableGraph::VertexIDMap VertexMap = gslam_.graph()->vertices();
 	
 	int last_edge_id = gslam_.lastVertex()->id();
-	std::cerr << "Last vertex is  "<<   last_edge_id << std::endl;
-	std::cerr << "window_size is  "<<   window_size << std::endl;
-
-	std::cerr << "The vertices are ";
-	for(OptimizableGraph::VertexIDMap::iterator it = VertexMap.begin();  it!= VertexMap.end(); it++){		
-		int b=1;
+//	std::cerr << "Last vertex is  "<<   last_edge_id << std::endl;
+//	std::cerr << "window_size is  "<<   window_size << std::endl;
+	
+	int search_window = std::min(last_edge_id+1, window_size);
+	
+	std::cerr << "The last vertices are  "<<   search_window << std::endl;
+	for(int i=0; i < search_window; i ++){
+//		std::cerr << last_edge_id-i << " ";
+		VertexSE2* vcurrent = dynamic_cast<VertexSE2*>(VertexMap[last_edge_id-i]);
 		
-		int current_id = it->first;
-		VertexSE2* vcurrent = dynamic_cast<VertexSE2*>(it->second);
-		
-		std::cerr << " "<<current_id;
+		OptimizableGraph::EdgeSet eset = vcurrent->edges();
+		for(OptimizableGraph::EdgeSet::iterator it = eset.begin();  it!= eset.end(); it++){					
+			EdgeSE2* e_in=dynamic_cast<EdgeSE2*>(*it);
+			
+			VertexSE2* vfrom=dynamic_cast<VertexSE2*>(e_in->vertices()[0]);
+			VertexSE2* vto  =dynamic_cast<VertexSE2*>(e_in->vertices()[1]);
+			
+			float from_x = vfrom->estimate().translation().x();
+			float from_y = vfrom->estimate().translation().y();
+			
+			float to_x = vto->estimate().translation().x();
+			float to_y = vto->estimate().translation().y();
+			
+			float distance = std::sqrt(  (from_x-to_x)*(from_x-to_x) + (from_y-to_y)*(from_y-to_y) );
+			
+			std::cerr << "("<< vfrom->id() << ","<< vto->id() << ") with distance: " << distance << std::endl;		
+			
+		}
+		std::cerr << std::endl;
 		
 	}
+
+	std::vector< std::pair<int, float> > edges_in_new_node;
+//	central_vertex_label = Distances.insert_new_node(label_new_node,  edges_in_new_node);
+
 	
+	/*
+	std::cerr << "The vertices are ";
+	for(OptimizableGraph::VertexIDMap::iterator it = VertexMap.begin();  it!= VertexMap.end(); it++){		
+		int current_id = it->first;
+		VertexSE2* vcurrent = dynamic_cast<VertexSE2*>(it->second);		
+		std::cerr << " "<<current_id;		
+	}
+	//*/
 	std::cerr <<std::endl;
 	
 
