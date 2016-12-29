@@ -51,19 +51,59 @@
 using namespace g2o;
 
 //int find_new_edges( SparseOptimizer *graph, int last_vertex) {
-int find_new_edges(   MRGraphSLAM &gslam_, int window_size) {
+int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Distance &distance_graph_) {
 	int a=1;
 	
 	OptimizableGraph::VertexIDMap VertexMap = gslam_.graph()->vertices();
 	
 	int last_edge_id = gslam_.lastVertex()->id();
-//	std::cerr << "Last vertex is  "<<   last_edge_id << std::endl;
+	std::cerr << "Last vertex is  "<<   last_edge_id << std::endl;
 //	std::cerr << "window_size is  "<<   window_size << std::endl;
+	
+	std::cerr << "The node is in the graph: " << distance_graph_.is_node_in_graph(last_edge_id) << std::endl;
+	VertexSE2* last_vertex = dynamic_cast<VertexSE2*>(VertexMap[last_edge_id]);
+	
+	OptimizableGraph::EdgeSet eset = last_vertex->edges();
+	std::vector< std::pair<int, float> > edges_in_last_node;
+	
+	for(OptimizableGraph::EdgeSet::iterator it = eset.begin();  it!= eset.end(); it++){					
+		EdgeSE2* e_in=dynamic_cast<EdgeSE2*>(*it);
+		
+		VertexSE2* vfrom = dynamic_cast<VertexSE2*>(e_in->vertices()[0]);
+		VertexSE2* vto   = dynamic_cast<VertexSE2*>(e_in->vertices()[1]);
+		
+		int node_to = (vto->id() == last_edge_id)? vfrom->id() : vto->id();
+
+//		std::cerr << "Connected to  "<<   node_to << std::endl;
+		
+		float from_x = vfrom->estimate().translation().x();
+		float from_y = vfrom->estimate().translation().y();
+		
+		float to_x = vto->estimate().translation().x();
+		float to_y = vto->estimate().translation().y();
+		
+		float distance = std::sqrt(  (from_x-to_x)*(from_x-to_x) + (from_y-to_y)*(from_y-to_y) );
+		
+		std::cerr << "("<< vfrom->id() << ","<< vto->id() << ") with distance: " << distance << std::endl;		
+		
+		std::pair<int, float>  node_distance_pair;
+		node_distance_pair.first = node_to;
+		node_distance_pair.second = distance;
+		
+		
+		edges_in_last_node.push_back(node_distance_pair);
+	}
+
+	distance_graph_.insert_new_node(last_edge_id, edges_in_last_node );
+
+
+
+
 	
 	int search_window = std::min(last_edge_id+1, window_size);
 	
 	std::cerr << "The last vertices are  "<<   search_window << std::endl;
-	for(int i=0; i < search_window; i ++){
+	for(int i=1; i < search_window; i ++){
 //		std::cerr << last_edge_id-i << " ";
 		VertexSE2* vcurrent = dynamic_cast<VertexSE2*>(VertexMap[last_edge_id-i]);
 		
@@ -82,7 +122,7 @@ int find_new_edges(   MRGraphSLAM &gslam_, int window_size) {
 			
 			float distance = std::sqrt(  (from_x-to_x)*(from_x-to_x) + (from_y-to_y)*(from_y-to_y) );
 			
-			std::cerr << "("<< vfrom->id() << ","<< vto->id() << ") with distance: " << distance << std::endl;		
+//			std::cerr << "("<< vfrom->id() << ","<< vto->id() << ") with distance: " << distance << std::endl;		
 			
 		}
 		std::cerr << std::endl;
@@ -102,11 +142,6 @@ int find_new_edges(   MRGraphSLAM &gslam_, int window_size) {
 	}
 	//*/
 	std::cerr <<std::endl;
-	
-
-
-
-
 	return a;
 }
 
@@ -179,17 +214,24 @@ int main(int argc, char **argv)
 
   gslam.setInitialData(odomPosk_1, rlaser);
 
+
+
+//New Modules
   GraphRosPublisher graphPublisher(gslam.graph(), fixedFrame);
   Graph_Distance distance_graph;
 
   Graph2RosMap g2map(rh.laser().header.frame_id, fixedFrame, odomFrame);
   GraphUncertainty uncertain(gslam.graph());
+	
+	std::cerr <<"Size first time "<< gslam.graph()->vertices().size() << std::endl;
+	std::vector< std::pair<int, float> > blank_edge;
+	distance_graph.insert_new_node(0, blank_edge);
+
 
   ros::Rate loop_rate(10);
   
   bool first_publish=true;
   int cycles=0;
-
 
   while (ros::ok()){
     ros::spinOnce();
@@ -213,13 +255,15 @@ int main(int argc, char **argv)
 
 //	  std::cerr << "Last vertex " << gslam.lastVertex()->id()<< std::endl ;
 //	  find_new_edges(gslam.graph(), gslam.lastVertex()->id());
-	  find_new_edges(gslam, windowLoopClosure);
-		std::cout << " after finding "<<std::endl;
+	  update_distance_graph(gslam, windowLoopClosure, distance_graph);
+
 
 
 	  
 	  
       gslam.optimize(5);
+      			std::cerr <<"Size "<< cycles <<"th time "<< gslam.graph()->vertices().size() << std::endl;
+      
 	  
       currEst = gslam.lastVertex()->estimate();
 
@@ -247,6 +291,7 @@ int main(int argc, char **argv)
 	if( (cycles >5) && first_publish){
 		g2map.graph_2_occ(gslam.graph());
 		graphPublisher.publishGraph();
+
 	}
 	else if (first_publish) cycles++;
     ///
