@@ -52,7 +52,7 @@ using namespace g2o;
 
 //int find_new_edges( SparseOptimizer *graph, int last_vertex) {
 int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Distance &distance_graph_) {
-	int a=1;
+	int central_vertex;
 	
 	OptimizableGraph::VertexIDMap VertexMap = gslam_.graph()->vertices();
 	
@@ -74,7 +74,7 @@ int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Dista
 		
 		int node_to = (vto->id() == last_edge_id)? vfrom->id() : vto->id();
 
-//		std::cerr << "Connected to  "<<   node_to << std::endl;
+		std::cerr << "Connected to  "<<   node_to << std::endl;
 		
 		float from_x = vfrom->estimate().translation().x();
 		float from_y = vfrom->estimate().translation().y();
@@ -94,7 +94,7 @@ int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Dista
 		edges_in_last_node.push_back(node_distance_pair);
 	}
 
-	distance_graph_.insert_new_node(last_edge_id, edges_in_last_node );
+	central_vertex = distance_graph_.insert_new_node(last_edge_id, edges_in_last_node );
 
 
 
@@ -114,16 +114,23 @@ int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Dista
 			VertexSE2* vfrom=dynamic_cast<VertexSE2*>(e_in->vertices()[0]);
 			VertexSE2* vto  =dynamic_cast<VertexSE2*>(e_in->vertices()[1]);
 			
-			float from_x = vfrom->estimate().translation().x();
-			float from_y = vfrom->estimate().translation().y();
+			std::set<int> id_edges = {vfrom->id() , vto->id() };
 			
-			float to_x = vto->estimate().translation().x();
-			float to_y = vto->estimate().translation().y();
-			
-			float distance = std::sqrt(  (from_x-to_x)*(from_x-to_x) + (from_y-to_y)*(from_y-to_y) );
-			
-//			std::cerr << "("<< vfrom->id() << ","<< vto->id() << ") with distance: " << distance << std::endl;		
-			
+			bool is_in = distance_graph_.is_edge_in_graph(id_edges);
+			if ( !is_in){
+				std::cerr << "New edge: " ;	
+				
+				float from_x = vfrom->estimate().translation().x();
+				float from_y = vfrom->estimate().translation().y();
+				
+				float to_x = vto->estimate().translation().x();
+				float to_y = vto->estimate().translation().y();
+				
+				float distance = std::sqrt(  (from_x-to_x)*(from_x-to_x) + (from_y-to_y)*(from_y-to_y) );
+				
+				std::cerr << "("<< vfrom->id() << ","<< vto->id() << ") with distance: " << distance << std::endl;		
+				central_vertex = distance_graph_.insert_new_edge(vfrom->id(), vto->id(),  distance );
+			}
 		}
 		std::cerr << std::endl;
 		
@@ -142,7 +149,7 @@ int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Dista
 	}
 	//*/
 	std::cerr <<std::endl;
-	return a;
+	return central_vertex;
 }
 
 
@@ -218,6 +225,7 @@ int main(int argc, char **argv)
 
 //New Modules
   GraphRosPublisher graphPublisher(gslam.graph(), fixedFrame);
+  int central_vertex = 0;
   Graph_Distance distance_graph;
 
   Graph2RosMap g2map(rh.laser().header.frame_id, fixedFrame, odomFrame);
@@ -255,14 +263,15 @@ int main(int argc, char **argv)
 
 //	  std::cerr << "Last vertex " << gslam.lastVertex()->id()<< std::endl ;
 //	  find_new_edges(gslam.graph(), gslam.lastVertex()->id());
-	  update_distance_graph(gslam, windowLoopClosure, distance_graph);
+	  central_vertex = update_distance_graph(gslam, windowLoopClosure, distance_graph);
 
-
+	  std::cerr <<"New Central Vertex "<< central_vertex  << std::endl;
 
 	  
 	  
       gslam.optimize(5);
       			std::cerr <<"Size "<< cycles <<"th time "<< gslam.graph()->vertices().size() << std::endl;
+
       
 	  
       currEst = gslam.lastVertex()->estimate();
