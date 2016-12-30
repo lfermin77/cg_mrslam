@@ -283,7 +283,7 @@ int main(int argc, char **argv)
       char buf[100];
 //      sprintf(buf, "robot-%i-%s", idRobot, outputFilename.c_str());
       sprintf(buf, "robot_slam");
-      gslam.saveGraph(buf);
+//      gslam.saveGraph(buf);
     }
 
 

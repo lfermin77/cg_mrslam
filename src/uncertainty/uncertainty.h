@@ -42,22 +42,24 @@ class GraphUncertainty
 	g2o::SE2 listen_tf_odom();
 	
 	void init_laser_id(string new_frame_id){ laser_frame_id = new_frame_id;}
-
 	void PoseArrayCallback(const geometry_msgs::PoseArray& pose_array_msg);
+	void calculate_every_uncertainty();	
+	
+	
 
- protected:
-  ros::NodeHandle _nh;
-  ros::Publisher Uncertainty_pub_;
-  ros::Subscriber pose_array_sub_;
-  
-  string laser_frame_id;
-  string fixed_frame_id;
-  string odom_frame_id;
-
-  SparseOptimizer* _graph;
-  
-  int marker_seq;
-  int map_seq;
+	protected:
+	ros::NodeHandle _nh;
+	ros::Publisher Uncertainty_pub_;
+	ros::Subscriber pose_array_sub_;
+	
+	string laser_frame_id;
+	string fixed_frame_id;
+	string odom_frame_id;
+	
+	SparseOptimizer* _graph;
+	
+	int marker_seq;
+	int map_seq;
 
 
 };

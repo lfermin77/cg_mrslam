@@ -85,7 +85,7 @@ Eigen::Matrix3d CalculateRelativeJacobian1( double from[], double to[]){
 	
 	
 	return JacobianRelative1;
-		}
+}
 
 Eigen::Matrix3d CalculateRelativeJacobian2( double from[], double to[]){
 	Eigen::Matrix3d JacobianRelative2;
@@ -104,10 +104,49 @@ Eigen::Matrix3d CalculateRelativeJacobian2( double from[], double to[]){
 	JacobianRelative2(2,1)=0;
 	JacobianRelative2(2,2)=1;
 	return JacobianRelative2;
-	}
+}
 	
 
 
 
 
 
+void GraphUncertainty::calculate_every_uncertainty(){
+
+	int node_size = _graph->vertices().size();
+	
+	std::vector< std::pair<int,int> > retrievalList_Big;
+	
+	std::vector<int> idx, idy;
+	idx.resize(node_size);
+	idx.resize(node_size);
+	
+
+	
+	
+	for(int i=0 ; i < node_size ; i ++){
+			idx[i] = i;
+			idy[i] = i;
+	}		
+	
+	for(int i=0 ; i < node_size ; i ++)
+		retrievalList_Big.push_back( std::pair<int,int>(idx[i],idy[i]) );
+
+	g2o::SparseBlockMatrix<Eigen::MatrixXd> spinv_Big(idx.data(),idy.data(), node_size*node_size , node_size*node_size);
+
+					
+	_graph->solver()->computeMarginals(spinv_Big,retrievalList_Big);
+	
+}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
