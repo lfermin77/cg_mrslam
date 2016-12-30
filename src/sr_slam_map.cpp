@@ -50,18 +50,14 @@
 
 using namespace g2o;
 
-//int find_new_edges( SparseOptimizer *graph, int last_vertex) {
 int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Distance &distance_graph_) {
 	int central_vertex;
 	
 	OptimizableGraph::VertexIDMap VertexMap = gslam_.graph()->vertices();
 	
-	int last_edge_id = gslam_.lastVertex()->id();
-	std::cerr << "Last vertex is  "<<   last_edge_id << std::endl;
-//	std::cerr << "window_size is  "<<   window_size << std::endl;
-	
-	std::cerr << "The node is in the graph: " << distance_graph_.is_node_in_graph(last_edge_id) << std::endl;
-	VertexSE2* last_vertex = dynamic_cast<VertexSE2*>(VertexMap[last_edge_id]);
+	int last_node_id = gslam_.lastVertex()->id();
+
+	VertexSE2* last_vertex = dynamic_cast<VertexSE2*>(VertexMap[last_node_id]);
 	
 	OptimizableGraph::EdgeSet eset = last_vertex->edges();
 	std::vector< std::pair<int, float> > edges_in_last_node;
@@ -72,7 +68,7 @@ int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Dista
 		VertexSE2* vfrom = dynamic_cast<VertexSE2*>(e_in->vertices()[0]);
 		VertexSE2* vto   = dynamic_cast<VertexSE2*>(e_in->vertices()[1]);
 		
-		int node_to = (vto->id() == last_edge_id)? vfrom->id() : vto->id();
+		int node_to = (vto->id() == last_node_id)? vfrom->id() : vto->id();
 
 		std::cerr << "Connected to  "<<   node_to << std::endl;
 		
@@ -94,18 +90,17 @@ int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Dista
 		edges_in_last_node.push_back(node_distance_pair);
 	}
 
-	central_vertex = distance_graph_.insert_new_node(last_edge_id, edges_in_last_node );
+	central_vertex = distance_graph_.insert_new_node(last_node_id, edges_in_last_node );
 
 
 
 
 	
-	int search_window = std::min(last_edge_id+1, window_size);
+	int search_window = std::min(last_node_id+1, window_size);
 	
 	std::cerr << "The last vertices are  "<<   search_window << std::endl;
 	for(int i=1; i < search_window; i ++){
-//		std::cerr << last_edge_id-i << " ";
-		VertexSE2* vcurrent = dynamic_cast<VertexSE2*>(VertexMap[last_edge_id-i]);
+		VertexSE2* vcurrent = dynamic_cast<VertexSE2*>(VertexMap[last_node_id-i]);
 		
 		OptimizableGraph::EdgeSet eset = vcurrent->edges();
 		for(OptimizableGraph::EdgeSet::iterator it = eset.begin();  it!= eset.end(); it++){					
@@ -132,25 +127,15 @@ int update_distance_graph(   MRGraphSLAM &gslam_, int window_size,   Graph_Dista
 				central_vertex = distance_graph_.insert_new_edge(vfrom->id(), vto->id(),  distance );
 			}
 		}
-		std::cerr << std::endl;
-		
+		std::cerr << std::endl;		
 	}
 
-	std::vector< std::pair<int, float> > edges_in_new_node;
-//	central_vertex_label = Distances.insert_new_node(label_new_node,  edges_in_new_node);
-
-	
-	/*
-	std::cerr << "The vertices are ";
-	for(OptimizableGraph::VertexIDMap::iterator it = VertexMap.begin();  it!= VertexMap.end(); it++){		
-		int current_id = it->first;
-		VertexSE2* vcurrent = dynamic_cast<VertexSE2*>(it->second);		
-		std::cerr << " "<<current_id;		
-	}
-	//*/
 	std::cerr <<std::endl;
 	return central_vertex;
 }
+
+
+
 
 
 
@@ -263,9 +248,19 @@ int main(int argc, char **argv)
 
 //	  std::cerr << "Last vertex " << gslam.lastVertex()->id()<< std::endl ;
 //	  find_new_edges(gslam.graph(), gslam.lastVertex()->id());
+
+	  OptimizableGraph::VertexIDMap VertexMap = gslam.graph()->vertices();	  
+      VertexSE2* vcurrent = dynamic_cast<VertexSE2*>( VertexMap[central_vertex] );      
+      vcurrent->setFixed(false);
+      
 	  central_vertex = update_distance_graph(gslam, windowLoopClosure, distance_graph);
 
 	  std::cerr <<"New Central Vertex "<< central_vertex  << std::endl;
+
+      vcurrent = dynamic_cast<VertexSE2*>( VertexMap[central_vertex] );      
+      vcurrent->setFixed(true);
+
+
 
 	  
 	  
@@ -286,8 +281,9 @@ int main(int argc, char **argv)
       graphPublisher.publishGraph();
       
       char buf[100];
-      sprintf(buf, "robot-%i-%s", idRobot, outputFilename.c_str());
-//      gslam.saveGraph(buf);
+//      sprintf(buf, "robot-%i-%s", idRobot, outputFilename.c_str());
+      sprintf(buf, "robot_slam");
+      gslam.saveGraph(buf);
     }
 
 
