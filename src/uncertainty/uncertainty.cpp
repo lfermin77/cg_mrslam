@@ -111,31 +111,58 @@ Eigen::Matrix3d CalculateRelativeJacobian2( double from[], double to[]){
 
 
 
-void GraphUncertainty::calculate_every_uncertainty(){
+void GraphUncertainty::calculate_every_uncertainty(int fixed_vertex){
 
 	int node_size = _graph->vertices().size();
 	
-	std::vector< std::pair<int,int> > retrievalList_Big;
+	std::vector< std::pair<int,int> > retrievalList;
 	
 	std::vector<int> idx, idy;
-	idx.resize(node_size);
-	idx.resize(node_size);
-	
 
 	
-	
+	//*
+	int k=0;
 	for(int i=0 ; i < node_size ; i ++){
-			idx[i] = i;
-			idy[i] = i;
-	}		
-	
+		if(i != fixed_vertex){
+			retrievalList.push_back( std::pair<int,int>(k,k));
+			k++;
+			idx.push_back(i+1);
+			idy.push_back(i+1);
+		}
+	}
+//*/
+
+/*
+	node_size --;
+	idx.resize(node_size);
+	idy.resize(node_size);
+
+
 	for(int i=0 ; i < node_size ; i ++)
-		retrievalList_Big.push_back( std::pair<int,int>(idx[i],idy[i]) );
+		retrievalList.push_back( std::pair<int,int>(i,i));
 
-	g2o::SparseBlockMatrix<Eigen::MatrixXd> spinv_Big(idx.data(),idy.data(), node_size*node_size , node_size*node_size);
+	for(int i=0 ; i < node_size ; i ++){
+			idx[i] = i+1;
+			idy[i] = i+1;
+	}	
+	//*/
+	
+	for(int i=0 ; i < idx.size() ; i ++){
+		std::cerr << " idx " << idx[i] << std::endl;
+	}	
+	for(int i=0 ; i < retrievalList.size() ; i ++){
+ 		std::cerr << " retrievalList " << retrievalList[i].first << ","<<retrievalList[i].second << std::endl;
+	}	
 
+
+
+	g2o::SparseBlockMatrix<Eigen::MatrixXd> spinv(idx.data(),idy.data(), idx.size(), idx.size() );
+
+	std::cerr << " Marginals before " << spinv << std::endl;
 					
-	_graph->solver()->computeMarginals(spinv_Big,retrievalList_Big);
+	_graph->solver()->computeMarginals(spinv,retrievalList);
+
+	std::cerr << " Marginals calculated " << spinv << std::endl;
 	
 }
 	

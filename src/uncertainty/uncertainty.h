@@ -43,7 +43,7 @@ class GraphUncertainty
 	
 	void init_laser_id(string new_frame_id){ laser_frame_id = new_frame_id;}
 	void PoseArrayCallback(const geometry_msgs::PoseArray& pose_array_msg);
-	void calculate_every_uncertainty();	
+	void calculate_every_uncertainty(int fixed_vertex);	
 	
 	
 

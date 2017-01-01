@@ -265,9 +265,10 @@ int main(int argc, char **argv)
 	  
 	  
       gslam.optimize(5);
-      			std::cerr <<"Size "<< cycles <<"th time "<< gslam.graph()->vertices().size() << std::endl;
+      			std::cerr <<"Size of vertex "<< gslam.graph()->vertices().size() << std::endl;
 
       
+      uncertain.calculate_every_uncertainty(central_vertex);
 	  
       currEst = gslam.lastVertex()->estimate();
 
