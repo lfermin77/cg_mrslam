@@ -148,21 +148,21 @@ void GraphUncertainty::calculate_every_uncertainty(int fixed_vertex){
 	//*/
 	
 	for(int i=0 ; i < idx.size() ; i ++){
-		std::cerr << " idx " << idx[i] << std::endl;
+		std::cout << " idx " << idx[i] << std::endl;
 	}	
 	for(int i=0 ; i < retrievalList.size() ; i ++){
- 		std::cerr << " retrievalList " << retrievalList[i].first << ","<<retrievalList[i].second << std::endl;
+ 		std::cout << " retrievalList " << retrievalList[i].first << ","<<retrievalList[i].second << std::endl;
 	}	
 
 
 
 	g2o::SparseBlockMatrix<Eigen::MatrixXd> spinv(idx.data(),idy.data(), idx.size(), idx.size() );
 
-	std::cerr << " Marginals before " << spinv << std::endl;
+	std::cout << " Marginals before " << spinv << std::endl;
 					
 	_graph->solver()->computeMarginals(spinv,retrievalList);
 
-	std::cerr << " Marginals calculated " << spinv << std::endl;
+	std::cout << " Marginals calculated " << spinv << std::endl;
 	
 }
 	
