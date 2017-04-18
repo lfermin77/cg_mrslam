@@ -164,7 +164,7 @@ int main(int argc, char **argv)
   arg.param("inlierThreshold",  inlierThreshold, 2.,   "inlier threshold");
   arg.param("idRobot", idRobot, 0, "robot identifier" );
   arg.param("nRobots", nRobots, 1, "number of robots" );
-  arg.param("maxScoreMR",    maxScoreMR, 0.15,  "score of the intra-robot matcher, the higher the less matches");
+  arg.param("maxScoreMR",    maxScoreMR, 0.10,  "score of the intra-robot matcher, the higher the less matches");
   arg.param("minInliersMR",    minInliersMR, 5,     "min inliers for the intra-robot loop closure");
   arg.param("windowMRLoopClosure",  windowMRLoopClosure, 10,   "sliding window for the intra-robot loop closures");
   arg.param("odometryTopic", odometryTopic, "odom", "odometry ROS topic");
